@@ -1,0 +1,47 @@
+{
+  "services": [
+    {
+      "name": "uber",
+      "match_sender": "uber",
+      "steps": [
+        {
+          "selector": "td.p2b",
+          "regex": "\\b\\d{4}\\b",
+          "score": 30
+        },
+        {
+          "selector": "b",
+          "regex": "\\b\\d{4,8}\\b",
+          "score": 10
+        },
+        {
+          "selector": "strong",
+          "regex": "\\b\\d{4,8}\\b",
+          "score": 10
+        }
+      ]
+    },
+    {
+      "name": "paypal",
+      "match_sender": "paypal",
+      "steps": [
+        {
+          "selector": "span.code",
+          "regex": "\\b\\d{6}\\b",
+          "score": 20
+        }
+      ]
+    },
+    {
+      "name": "discord",
+      "match_sender": "discord",
+      "steps": [
+        {
+          "selector": "td.verification",
+          "regex": "\\b\\d{6}\\b",
+          "score": 20
+        }
+      ]
+    }
+  ]
+}

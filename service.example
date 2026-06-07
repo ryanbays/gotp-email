@@ -1,0 +1,40 @@
+[Unit]
+Description=OTP Extraction Service
+After=network.target redis.service
+Wants=redis.service
+
+[Service]
+Type=simple
+
+# Run as a non-root user (recommended)
+User=otp
+Group=otp
+
+# Working directory
+WorkingDirectory=/opt/gotp-email
+
+# Environment variables (optional but useful)
+Environment=LOG_LEVEL=info
+
+# Start command
+ExecStart=/opt/gotp-email/build
+
+# Restart policy
+Restart=always
+RestartSec=3
+
+# Logging to journald
+StandardOutput=journal
+StandardError=journal
+
+# Hardening (optional but recommended)
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+
+# Allow network access (needed for Redis + HTTP server)
+RestrictAddressFamilies=AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target
