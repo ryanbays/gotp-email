@@ -76,7 +76,7 @@ status:
     sudo systemctl status {{APP_NAME}} --no-pager
 
 # Full install pipeline
-install: user dirs build service restart
+install: user dirs build service config restart
     @echo "Installation complete"
 
 # Logs

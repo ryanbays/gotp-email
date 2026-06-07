@@ -68,7 +68,10 @@ func main() {
 	}
 
 	logrus.WithField("cache_dir", internal.AppConfig.CacheDir).Debug("ensuring cache directory exists")
-	os.MkdirAll(internal.AppConfig.CacheDir, 0755)
+	err = os.MkdirAll(internal.AppConfig.CacheDir, 0755)
+	if err != nil {
+		logrus.WithError(err).WithField("dir", internal.AppConfig.CacheDir).Fatal("failed to create cache directory")
+	}
 
 	logrus.WithField("path", *rulesPath).Info("loading rules file")
 	if err := internal.LoadRules(*rulesPath); err != nil {
