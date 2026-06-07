@@ -6,7 +6,7 @@ APP_NAME="otp-service"
 PORT="8080"
 BASE_URL="http://localhost:${PORT}"
 
-API_KEY="test-key"
+API_KEY="test-api-key"
 
 APP_DIR="../src"
 BIN="/tmp/${APP_NAME}"

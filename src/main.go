@@ -130,11 +130,22 @@ func inbound(c *gin.Context) {
 		"from":  req.From,
 		"to":    req.To,
 	}).Debug("received inbound email")
-
-	internal.SaveEmailCache(internal.AppConfig.CacheDir, inbox, req)
+	decoded_html, err := internal.DecodeRawEmailBody(req.Raw)
+	if err != nil {
+		logrus.WithError(err).WithField("inbox", inbox).Warn("failed to decode email body")
+	} else {
+		logrus.WithField("inbox", inbox).Debugf("decoded email body: %s", decoded_html)
+	}
+	emailData := map[string]any{
+		"from": req.From,
+		"to":   req.To,
+		"raw":  req.Raw,
+		"html": decoded_html,
+	}
+	internal.SaveEmailCache(internal.AppConfig.CacheDir, inbox, emailData)
 	logrus.WithField("inbox", inbox).Debug("saved email to cache")
 
-	otp := internal.ExtractOTP(req.From, req.Raw)
+	otp := internal.ExtractOTP(req.From, decoded_html)
 	if otp == "" {
 		logrus.WithFields(logrus.Fields{
 			"inbox": inbox,
