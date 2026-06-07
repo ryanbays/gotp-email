@@ -40,6 +40,7 @@ func ExtractOTP(sender string, html string) string {
 
 		doc.Find(step.Selector).Each(func(i int, s *goquery.Selection) {
 			text := strings.TrimSpace(s.Text())
+			log.WithField("text", text).Debug("checking element for OTP candidates")
 			matches := re.FindAllString(text, -1)
 
 			if len(matches) > 0 {
