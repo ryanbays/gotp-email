@@ -46,12 +46,13 @@ service:
 config:
     @if [ -f {{CONFIG_DIR}}/rules.json ] || [ -f {{CONFIG_DIR}}/gotp.conf ]; then \
         read -p "Config files already exist. Do you want to overwrite them? (y/n) " answer; \
-        if [ "$$answer" != "y" ]; then \
-            echo "Skipping config installation."; \
-            exit 0; \
+        if [ "$$answer" == "y" ]; then \
+            just config-install \
+        else \
+            echo "Skipping config installation." \
         fi; \
     fi
-    just config-install
+
 
 # Installs config files without confirmation (used by config task)
 config-install:
