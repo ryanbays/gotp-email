@@ -6,30 +6,22 @@ SERVICE_FILE := "/etc/systemd/system/" + APP_NAME + ".service"
 CACHE_DIR := APP_DIR + "/cache" 
 CONFIG_DIR := "/etc/" + APP_NAME
 
-# ----------------------------
 # Default task
-# ----------------------------
 default:
     @just --list
 
-# ----------------------------
 # Build binary
-# ----------------------------
 build:
     @echo "Building binary..."
     
     cd src && go mod tidy && sudo go build -o {{BIN}} .
     @cd ..
 
-# ----------------------------
 # Create system user (safe no-op if exists)
-# ----------------------------
 user:
     @id otp >/dev/null 2>&1 || sudo useradd -r -s /bin/false otp
 
-# ----------------------------
 # Create directories
-# ----------------------------
 dirs:
     @echo "Creating directories..."
     sudo mkdir -p {{APP_DIR}}
@@ -39,9 +31,7 @@ dirs:
     sudo chown -R otp:otp {{APP_DIR}}
     sudo chown -R otp:otp {{CACHE_DIR}}
 
-# ----------------------------
 # Install systemd service (symlink style)
-# ----------------------------
 service:
     @echo "Installing systemd service..."
     sudo mkdir -p /etc/systemd/system
@@ -52,8 +42,8 @@ service:
     sudo systemctl daemon-reload
     sudo systemctl enable {{APP_NAME}}
 
+# Installs config files with overwrite confirmation
 config:
-    # If config files exist, ask if user wants to overwrite them
     @if [ -f {{CONFIG_DIR}}/rules.json ] || [ -f {{CONFIG_DIR}}/gotp.conf ]; then \
         read -p "Config files already exist. Do you want to overwrite them? (y/n) " answer; \
         if [ "$$answer" != "y" ]; then \
@@ -63,6 +53,7 @@ config:
     fi
     just config-install
 
+# Installs config files without confirmation (used by config task)
 config-install:
     @echo "Copying config files to {{CONFIG_DIR}}..."
     sudo rm -f {{CONFIG_DIR}}/rules.json
@@ -75,27 +66,19 @@ config-install:
 
 
 
-# ----------------------------
 # Restart service
-# ----------------------------
 restart:
     @echo "Restarting service..."
     sudo systemctl restart {{APP_NAME}}
 
-# ----------------------------
 # Check status
-# ----------------------------
 status:
     sudo systemctl status {{APP_NAME}} --no-pager
 
-# ----------------------------
 # Full install pipeline
-# ----------------------------
 install: user dirs build service restart
     @echo "Installation complete"
 
-# ----------------------------
 # Logs
-# ----------------------------
 logs:
     journalctl -u {{APP_NAME}} -f
