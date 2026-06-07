@@ -44,15 +44,17 @@ service:
 
 # Installs config files with overwrite confirmation
 config:
-    @if [ -f {{CONFIG_DIR}}/rules.json ] || [ -f {{CONFIG_DIR}}/gotp.conf ]; then \
-        read -p "Config files already exist. Do you want to overwrite them? (y/n) " answer; \
-        if [ "$$answer" == "y" ]; then \
-            just config-install \
+    @if [ -f "{{CONFIG_DIR}}/rules.json" ] || [ -f "{{CONFIG_DIR}}/gotp.conf" ]; then \
+        printf "Config files already exist. Do you want to overwrite them? (y/n) "; \
+        read answer; \
+        if [ "$$answer" = "y" ]; then \
+            just config-install; \
         else \
-            echo "Skipping config installation." \
+            echo "Skipping config installation."; \
         fi; \
+    else \
+        just config-install; \
     fi
-
 
 # Installs config files without confirmation (used by config task)
 config-install:
@@ -64,8 +66,6 @@ config-install:
     sudo cp $(pwd)/config/gotp.conf {{CONFIG_DIR}}/gotp.conf
 
     sudo chmod -R go+r {{CONFIG_DIR}}
-
-
 
 # Restart service
 restart:

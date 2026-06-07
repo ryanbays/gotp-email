@@ -18,7 +18,6 @@ import (
 )
 
 // decodeRawEmailBody parses a raw MIME email and returns the decoded HTML body.
-// If no HTML part exists, it falls back to plain text.
 func DecodeRawEmailBody(raw string) (string, error) {
 	msg, err := mail.ReadMessage(strings.NewReader(raw))
 	if err != nil {
@@ -55,6 +54,9 @@ func DecodeRawEmailBody(raw string) (string, error) {
 			if err != nil {
 				continue
 			}
+			// Strip newlines and carriage returns
+			body = strings.ReplaceAll(body, "\r", "")
+			body = strings.ReplaceAll(body, "\n", "")
 
 			if partType == "text/html" {
 				return body, nil
