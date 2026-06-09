@@ -6,6 +6,7 @@ import (
 	"flag"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -22,6 +23,24 @@ var rdb = redis.NewClient(&redis.Options{
 
 const OTP_TTL = time.Hour
 
+const (
+	PromoServiceAmazon  = "amazon"
+	PromoServiceStripe  = "stripe"
+	PromoServiceShopify = "shopify"
+)
+
+var validPromoServices = []string{
+	PromoServiceAmazon,
+	PromoServiceStripe,
+	PromoServiceShopify,
+}
+
+var validPromoServiceSet = map[string]struct{}{
+	PromoServiceAmazon:  {},
+	PromoServiceStripe:  {},
+	PromoServiceShopify: {},
+}
+
 type EmailRequest struct {
 	From string `json:"from"`
 	To   string `json:"to"`
@@ -32,6 +51,10 @@ type OTPPayload struct {
 	OTP       string `json:"otp"`
 	From      string `json:"from"`
 	Timestamp int64  `json:"timestamp"`
+}
+
+type PromoRequest struct {
+	Code string `json:"code"`
 }
 
 func main() {
@@ -91,6 +114,9 @@ func main() {
 	protected.GET("/otp/:inbox", getOTP)
 	protected.GET("/otp/:inbox/history", history)
 	protected.GET("/email-cache/:inbox", emailCache)
+	protected.GET("/promo/services", listPromoServices)
+	protected.POST("/promo/:service", postPromo)
+	protected.GET("/promo/:service", getPromo)
 
 	logrus.Info("server listening on :8080")
 	if err := r.Run(":8080"); err != nil {
@@ -114,6 +140,78 @@ func apiKeyAuth(expected string) gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+func promoKey(service string) string {
+	return "promo:" + service
+}
+
+func isValidPromoService(service string) bool {
+	_, ok := validPromoServiceSet[service]
+	return ok
+}
+
+func listPromoServices(c *gin.Context) {
+	c.JSON(200, gin.H{"services": validPromoServices})
+}
+
+func postPromo(c *gin.Context) {
+	service := c.Param("service")
+	if !isValidPromoService(service) {
+		logrus.WithField("service", service).Warn("invalid promo service")
+		c.JSON(400, gin.H{"error": "invalid service"})
+		return
+	}
+
+	var req PromoRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		logrus.WithError(err).WithField("service", service).Warn("failed to parse promo request")
+		c.JSON(400, gin.H{"error": "bad request"})
+		return
+	}
+
+	req.Code = strings.TrimSpace(req.Code)
+	if req.Code == "" {
+		c.JSON(400, gin.H{"error": "promo code required"})
+		return
+	}
+
+	if err := rdb.RPush(ctx, promoKey(service), req.Code).Err(); err != nil {
+		logrus.WithError(err).WithField("service", service).Error("failed to store promo code")
+		c.JSON(500, gin.H{"error": "internal error"})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"status":  "ok",
+		"service": service,
+		"promo":   req.Code,
+	})
+}
+
+func getPromo(c *gin.Context) {
+	service := c.Param("service")
+	if !isValidPromoService(service) {
+		logrus.WithField("service", service).Warn("invalid promo service")
+		c.JSON(400, gin.H{"error": "invalid service"})
+		return
+	}
+
+	val, err := rdb.LPop(ctx, promoKey(service)).Result()
+	if err != nil {
+		if err == redis.Nil {
+			c.JSON(200, gin.H{"promo": nil})
+			return
+		}
+		logrus.WithError(err).WithField("service", service).Error("failed to fetch promo code")
+		c.JSON(500, gin.H{"error": "internal error"})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"service": service,
+		"promo":   val,
+	})
 }
 
 func inbound(c *gin.Context) {

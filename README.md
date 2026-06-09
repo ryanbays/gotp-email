@@ -181,6 +181,53 @@ Returns the raw cached email body for the given inbox as stored on disk.
 
 ---
 
+### Get Valid promo services
+
+```
+GET /promo/sevices
+```
+Returns a list of valid promo services that can be used in rules.
+
+**Response `200`**
+```json
+{
+  "services": ["service1", "service2", "service3"]
+}
+```
+---
+
+### Get Promo Code
+```
+GET /promo/:service
+```
+Returns the current valid promo code for the given service, if any.
+| Parameter | Description          |
+|-----------|----------------------|
+| service   | The promo service name to look up |
+
+**Response `200` — Promo code found**
+```json
+{
+    "service": "service1",
+    "promo_code": "PROMO123",
+}
+```
+
+**Response `500` — No promo code**
+```json
+{
+    "error": "ERROR",
+}
+```
+---
+### Post Promo Code
+```
+POST /promo/:service
+```
+Updates the promo code for the given service. The new code is valid for 24 hours.
+
+
+```
 ## Running the Server
 
 ```sh
