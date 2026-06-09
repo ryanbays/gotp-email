@@ -1,4 +1,5 @@
 {
+  "promo_services": ["uber", "uber-eats"],
   "services": [
     {
       "name": "uber",
@@ -10,9 +11,9 @@
           "score": 30
         },
         {
-          "selector": "b",
+          "selector": "td.p1b",
           "regex": "\\b\\d{4,8}\\b",
-          "score": 10
+          "score": 30
         },
         {
           "selector": "strong",

@@ -9,7 +9,8 @@ import (
 )
 
 type RulesFile struct {
-	Services []ServiceRule `json:"services"`
+	PromoServices []string      `json:"promo_services"`
+	Services      []ServiceRule `json:"services"`
 }
 
 type ServiceRule struct {

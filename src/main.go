@@ -23,23 +23,8 @@ var rdb = redis.NewClient(&redis.Options{
 
 const OTP_TTL = time.Hour
 
-const (
-	PromoServiceAmazon  = "amazon"
-	PromoServiceStripe  = "stripe"
-	PromoServiceShopify = "shopify"
-)
-
-var validPromoServices = []string{
-	PromoServiceAmazon,
-	PromoServiceStripe,
-	PromoServiceShopify,
-}
-
-var validPromoServiceSet = map[string]struct{}{
-	PromoServiceAmazon:  {},
-	PromoServiceStripe:  {},
-	PromoServiceShopify: {},
-}
+var promoServiceSet = map[string]struct{}{}
+var promoServices []string
 
 type EmailRequest struct {
 	From string `json:"from"`
@@ -100,7 +85,12 @@ func main() {
 	if err := internal.LoadRules(*rulesPath); err != nil {
 		logrus.WithError(err).Fatal("failed to load rules")
 	}
+	promoServices = internal.Rules.PromoServices
 
+	promoServiceSet = make(map[string]struct{}, len(promoServices))
+	for _, s := range promoServices {
+		promoServiceSet[s] = struct{}{}
+	}
 	r := gin.New()
 	r.Use(ginlogrus.Logger(logrus.StandardLogger()), gin.Recovery())
 	r.SetTrustedProxies(internal.AppConfig.TrustedProxies)
@@ -147,12 +137,11 @@ func promoKey(service string) string {
 }
 
 func isValidPromoService(service string) bool {
-	_, ok := validPromoServiceSet[service]
+	_, ok := promoServiceSet[service]
 	return ok
 }
-
 func listPromoServices(c *gin.Context) {
-	c.JSON(200, gin.H{"services": validPromoServices})
+	c.JSON(200, gin.H{"services": promoServices})
 }
 
 func postPromo(c *gin.Context) {
