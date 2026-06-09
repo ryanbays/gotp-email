@@ -14,7 +14,7 @@ Group=otp
 WorkingDirectory=/opt/gotp-email
 
 # Environment variables (optional but useful)
-Environment=LOG_LEVEL=info
+Environment=LOG_LEVEL=trace
 
 # Start command
 ExecStart=/opt/gotp-email/build
