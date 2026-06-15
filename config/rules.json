@@ -1,5 +1,5 @@
 {
-  "promo_services": ["uber", "uber-eats"],
+  "promo_services": ["uber", "uber-eats", "deliveroo"],
   "services": [
     {
       "name": "uber",
@@ -14,31 +14,14 @@
           "selector": "td.p1b",
           "regex": "\\b\\d{4,8}\\b",
           "score": 30
-        },
-        {
-          "selector": "strong",
-          "regex": "\\b\\d{4,8}\\b",
-          "score": 10
         }
       ]
     },
-    {
-      "name": "paypal",
-      "match_sender": "paypal",
+    {"name": "deliveroo",
+      "match_sender": "deliveroo",
       "steps": [
         {
-          "selector": "span.code",
-          "regex": "\\b\\d{6}\\b",
-          "score": 20
-        }
-      ]
-    },
-    {
-      "name": "discord",
-      "match_sender": "discord",
-      "steps": [
-        {
-          "selector": "td.verification",
+          "selector": "span",
           "regex": "\\b\\d{6}\\b",
           "score": 20
         }
